@@ -1,0 +1,6 @@
+{
+  "name": "Treinamento Industrial OS",
+  "description": "Treinamento completo sobre os fundamentos de Engenharia de Produção aplicados a uma fábrica de colchões na plataforma Industrial OS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
