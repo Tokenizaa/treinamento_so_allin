@@ -23,7 +23,7 @@ export const modulesData: ModuleData[] = [
       { label: "Expedição", description: "Estocagem de produtos acabados prontos para despacho." }
     ],
     practicalExample: "Na fábrica 'Colchões Bonsucesso', o recebimento de blocos de espuma maciça é feito na Doca Norte. Eles são rotulados e encaminhados para o galpão de cura antes de irem para a linha de corte.",
-    systemApplication: "No Industrial OS, você cadastra a Empresa, vincula as Unidades Físicas (Fábrica Principal, Filial), e desenha a estrutura de Galpões e Almoxarifados para que o estoque saiba exatamente onde cada lote está fisicamente guardado.",
+    systemApplication: "No Allin-SO, você cadastra a Empresa, vincula as Unidades Físicas (Fábrica Principal, Filial), e desenha a estrutura de Galpões e Almoxarifados para que o estoque saiba exatamente onde cada lote está fisicamente guardado.",
     commonErrors: [
       "Confundir 'Galpão Físico' com 'Setor'. Um galpão pode abrigar vários setores.",
       "Cadastrar almoxarifados sem definir suas docas de vínculo, gerando gargalo no recebimento físico."
@@ -108,7 +108,7 @@ export const modulesData: ModuleData[] = [
       { label: "Embalagem (Prensa/Roll Pack)", description: "Compactação e proteção plástica do produto." }
     ],
     practicalExample: "Uma fábrica mal desenhada tinha o setor de costura a 150 metros do setor de montagem. Os operadores perdiam 2 horas por dia empurrando carrinhos de tampos. Ao aproximar os setores, a produtividade diária subiu 12%.",
-    systemApplication: "No Industrial OS, mapeamos o fluxo de layout definindo as rotas de transferência de materiais e associando os locais de estoque intermediário (WIP) a cada etapa produtiva.",
+    systemApplication: "No Allin-SO, mapeamos o fluxo de layout definindo as rotas de transferência de materiais e associando os locais de estoque intermediário (WIP) a cada etapa produtiva.",
     commonErrors: [
       "Ignorar distâncias de transporte de materiais pesados (ex: blocos de molas).",
       "Posicionar o setor de colagem (que gera névoa de adesivo) colado ao setor de inspeção visual, sujando tampos prontos."
@@ -187,7 +187,7 @@ export const modulesData: ModuleData[] = [
       { label: "Qualidade", description: "Aprova ou reprova o produto acabado." }
     ],
     practicalExample: "Se o setor de Compras não avisa o PCP que a cola adesiva vai atrasar, o PCP agenda a colagem e a produção para na quarta-feira por falta de insumo. A falta de comunicação entre setores gera paradas caras.",
-    systemApplication: "No Industrial OS, cada usuário é vinculado a um setor. Isso define quais telas eles visualizam (ex: o operador vê a tela de apontamentos da Produção; o analista vê a tela de programação do PCP).",
+    systemApplication: "No Allin-SO, cada usuário é vinculado a um setor. Isso define quais telas eles visualizam (ex: o operador vê a tela de apontamentos da Produção; o analista vê a tela de programação do PCP).",
     commonErrors: [
       "Operador apontar parada de máquina na tela de produção mas não abrir o chamado para o setor de Manutenção no sistema.",
       "Qualidade reprovar um lote de tecido e não notificar o Almoxarifado para bloquear o saldo."
@@ -195,7 +195,7 @@ export const modulesData: ModuleData[] = [
     summary: [
       "Setores são barreiras organizacionais que precisam de comunicação contínua.",
       "A harmonia entre PCP, Produção e Qualidade garante o cumprimento de prazos.",
-      "O sistema Industrial OS unifica os dados de todos esses setores em tempo real."
+      "O sistema Allin-SO unifica os dados de todos esses setores em tempo real."
     ],
     quiz: {
       questions: [
@@ -275,7 +275,7 @@ export const modulesData: ModuleData[] = [
       { label: "CT Tape Edge (Fechamento)", description: "Capacidade: 8 colchões/hora (GARGALO!)." }
     ],
     practicalExample: "Se o CT de colagem consegue fazer 30 colchões por hora, mas o CT de fechamento (Tape Edge) consegue fechar apenas 10 por hora, a colagem terá que parar ou acumulará uma pilha gigante de colchões semiacabados.",
-    systemApplication: "No Industrial OS, você cria os Centros de Trabalho e define sua capacidade diária. Isso permite ao PCP calcular automaticamente se a fábrica conseguirá entregar um pedido a tempo (Carga Máquina).",
+    systemApplication: "No Allin-SO, você cria os Centros de Trabalho e define sua capacidade diária. Isso permite ao PCP calcular automaticamente se a fábrica conseguirá entregar um pedido a tempo (Carga Máquina).",
     commonErrors: [
       "Cadastrar o setor inteiro como um único Centro de Trabalho, impedindo a identificação de qual máquina específica é o gargalo.",
       "Ignorar o tempo de setup (preparação) ao planejar a capacidade de um CT."
@@ -289,7 +289,7 @@ export const modulesData: ModuleData[] = [
       questions: [
         {
           id: "q4_1",
-          text: "Se um setor de costura tem 3 máquinas idênticas trabalhando em paralelo que podem ser operadas por qualquer costureira, como devemos cadastrá-las no Industrial OS para otimizar o sequenciamento?",
+          text: "Se um setor de costura tem 3 máquinas idênticas trabalhando em paralelo que podem ser operadas por qualquer costureira, como devemos cadastrá-las no Allin-SO para otimizar o sequenciamento?",
           options: [
             "Como 3 setores diferentes.",
             "Como um único Centro de Trabalho com capacidade multiplicada por 3 (grupo de máquinas).",
@@ -357,7 +357,7 @@ export const modulesData: ModuleData[] = [
       { label: "Prensa de Roll-Pack", description: "Prensa, enrola e sela o colchão em filme plástico." }
     ],
     practicalExample: "A prensa de Roll-Pack permite reduzir o volume de um colchão de molas em até 80%, viabilizando o transporte de 5x mais colchões no mesmo caminhão. Se esta máquina quebra, a logística trava.",
-    systemApplication: "No Industrial OS, cada máquina possui uma ficha de cadastro contendo: Código do Ativo, Taxa de Produção Estimada (ex: peças/hora) e plano de manutenção preventiva vinculado.",
+    systemApplication: "No Allin-SO, cada máquina possui uma ficha de cadastro contendo: Código do Ativo, Taxa de Produção Estimada (ex: peças/hora) e plano de manutenção preventiva vinculado.",
     commonErrors: [
       "Cadastrar a velocidade máxima teórica do fabricante da máquina como meta real, sem descontar fadiga do operador e pequenas paradas.",
       "Esquecer de vincular a máquina a um Centro de Trabalho, deixando-a invisível para o planejamento do PCP."
@@ -446,7 +446,7 @@ export const modulesData: ModuleData[] = [
       { label: "Pistolas e Cilindros", description: "Consumidores finais do ar nos postos de trabalho." }
     ],
     practicalExample: "Um secador de ar quebrado no compressor permitiu a passagem de água na tubulação pneumática. Isso danificou 4 grampeadores de madeira em um único dia, parando o setor de bases de madeira.",
-    systemApplication: "No Industrial OS, cadastramos os Equipamentos Utilitários (como compressores) para controlar seus planos de troca de óleo e filtros, evitando paradas gerais imprevistas na fábrica.",
+    systemApplication: "No Allin-SO, cadastramos os Equipamentos Utilitários (como compressores) para controlar seus planos de troca de óleo e filtros, evitando paradas gerais imprevistas na fábrica.",
     commonErrors: [
       "Ignorar a manutenção do compressor. Se ele parar, 80% das ferramentas e prensas da fábrica também param.",
       "Não calibrar as balanças de pesagem de blocos de espuma, gerando densidades incorretas fora do padrão INMETRO."
@@ -535,7 +535,7 @@ export const modulesData: ModuleData[] = [
       { label: "Estilete Refilador", description: "Elimina sobras de tecido no acabamento final." }
     ],
     practicalExample: "Se a fábrica não fornece estiletes ergonômicos adequados, os operadores de corte de espuma sofrem fadiga precoce e começam a cortar peças fora da medida. Ferramentas baratas e ruins destroem a produtividade.",
-    systemApplication: "No Industrial OS, ferramentas são registradas para controle de entregas (EPI/EPC e ferramentas de uso individual) e para cálculo de vida útil de ferramentas compartilhadas (como moldes ou matrizes).",
+    systemApplication: "No Allin-SO, ferramentas são registradas para controle de entregas (EPI/EPC e ferramentas de uso individual) e para cálculo de vida útil de ferramentas compartilhadas (como moldes ou matrizes).",
     commonErrors: [
       "Não calibrar periodicamente as trenas dos inspetores de qualidade, gerando colchões com tamanhos diferentes que não cabem no box.",
       "Usar grampos do tamanho errado no grampeador pneumático, gerando estruturas soltas que rangem com o tempo."
@@ -618,7 +618,7 @@ export const modulesData: ModuleData[] = [
       { label: "Gerente Industrial", description: "Otimiza custos globais, OEE e eficiência da fábrica." }
     ],
     practicalExample: "Um operador bem treinado percebeu que a máquina de cola estava gotejando e desperdiçando material. Ele sugeriu uma pequena regulagem no bico, economizando R$ 4.000 por mês em cola adesiva.",
-    systemApplication: "No Industrial OS, criamos os perfis de cada funcionário, definindo seu nível de acesso, valor do custo hora de mão de obra direta (MOD) para cálculo de custos, e competências de operação.",
+    systemApplication: "No Allin-SO, criamos os perfis de cada funcionário, definindo seu nível de acesso, valor do custo hora de mão de obra direta (MOD) para cálculo de custos, e competências de operação.",
     commonErrors: [
       "Lançar apontamentos de produção com a matrícula de outro funcionário, distorcendo as métricas de produtividade individual por operador.",
       "Alocar um operador não capacitado para operar máquinas perigosas (como a serra de fita vertical), violando normas regulamentadoras de segurança (NR-12)."
@@ -702,7 +702,7 @@ export const modulesData: ModuleData[] = [
       { label: "Consumo Produtivo", description: "Baixa automática no estoque ao iniciar a produção." }
     ],
     practicalExample: "Se a fábrica recebe um lote de tecido com largura menor que a especificada, o pantógrafo de costura não conseguirá cortar os tampos corretamente, resultando em 15% de perda de material e atraso em 50 colchões.",
-    systemApplication: "No Industrial OS, cadastramos as Matérias-Primas com seus códigos, unidades de medida (metros para tecido, kg para cola, unidades para molas) e níveis mínimos de segurança (ponto de ressuprimento).",
+    systemApplication: "No Allin-SO, cadastramos as Matérias-Primas com seus códigos, unidades de medida (metros para tecido, kg para cola, unidades para molas) e níveis mínimos de segurança (ponto de ressuprimento).",
     commonErrors: [
       "Lançar entrada de tecidos em 'unidades' em vez de 'metros lineares', gerando descontrole total no rendimento.",
       "Consumir matéria-prima na produção sem informar o número do lote recebido, destruindo a rastreabilidade em caso de reclamação de garantia do cliente."
@@ -785,7 +785,7 @@ export const modulesData: ModuleData[] = [
       { label: "Componente Tampo", description: "Enviado ao estoque WIP para aguardar colagem final." }
     ],
     practicalExample: "Fabricar tampos e faixas laterais de forma antecipada (estocados como componentes semiacabados) permite que a linha de montagem final monte um colchão personalizado em menos de 10 minutos quando o pedido entra.",
-    systemApplication: "No Industrial OS, cadastramos os Componentes com sua própria lista de materiais (BOM secundária) e geramos ordens de produção internas de semiacabados para alimentar as linhas de produto acabado.",
+    systemApplication: "No Allin-SO, cadastramos os Componentes com sua própria lista de materiais (BOM secundária) e geramos ordens de produção internas de semiacabados para alimentar as linhas de produto acabado.",
     commonErrors: [
       "Lançar o tampo bordado diretamente como matéria-prima de compra, ocultando o tempo e o custo de fabricação interna dele.",
       "Não controlar o estoque físico dos componentes semiacabados (WIP), gerando falta de tampos nas mesas de colagem."
@@ -872,7 +872,7 @@ export const modulesData: ModuleData[] = [
       { label: "Vincular BOMs", description: "Receitas de materiais específicas para cada dimensão." }
     ],
     practicalExample: "Ao padronizar as variantes de tamanho no sistema, a fábrica consegue calcular instantaneamente a quantidade exata de matéria-prima necessária para produzir um mix de 40 colchões variados em um único dia.",
-    systemApplication: "No Industrial OS, você gerencia a árvore de produtos. É possível visualizar a Ficha Técnica de Engenharia, ver o histórico de custos de fabricação, e tabelas de preços de venda por canal de distribuição.",
+    systemApplication: "No Allin-SO, você gerencia a árvore de produtos. É possível visualizar a Ficha Técnica de Engenharia, ver o histórico de custos de fabricação, e tabelas de preços de venda por canal de distribuição.",
     commonErrors: [
       "Cadastrar o colchão Solteiro e o Casal com o mesmo código de produto, gerando faturamento errado e descontrole de estoque físico.",
       "Não atualizar a ficha técnica do produto após alterar o fornecedor de tecido por um mais espesso, distorcendo os custos estimados."
@@ -955,7 +955,7 @@ export const modulesData: ModuleData[] = [
       { label: "Roteiro", description: "Corte -> Quilting -> Costura -> Colagem -> Tape Edge -> Rollpack." }
     ],
     practicalExample: "Um erro na engenharia cadastrou 12 kg de cola por colchão em vez de 1.2 kg. O sistema assumiu que a fábrica precisava de toneladas de cola, gerando um pedido de compras gigante e desnecessário.",
-    systemApplication: "No Industrial OS, a engenharia é a espinha dorsal. É nela que ligamos a BOM aos Roteiros. Quando o comercial vende 10 colchões, a engenharia explode a demanda em metros de tecido e horas de máquina.",
+    systemApplication: "No Allin-SO, a engenharia é a espinha dorsal. É nela que ligamos a BOM aos Roteiros. Quando o comercial vende 10 colchões, a engenharia explode a demanda em metros de tecido e horas de máquina.",
     commonErrors: [
       "Ignorar a porcentagem de quebra ou perda inerente no processo (ex: 5% de retalho de tecido) no cadastro da BOM, gerando furos de estoque real.",
       "Criar roteiros de processo genéricos sem tempos estimados de setup e tempo por peça, inviabilizando o agendamento de capacidade pelo PCP."
@@ -1034,7 +1034,7 @@ export const modulesData: ModuleData[] = [
       { label: "Inspecionar Alinhamento", description: "Verificar se as bordas coincidem perfeitamente." }
     ],
     practicalExample: "Uma colchoaria eliminou 90% das bolhas de ar nos colchões ao treinar os operadores em um processo padrão de prensagem das placas de espuma logo após a colagem.",
-    systemApplication: "No Industrial OS, os fluxos de processo definem as transições de status das Ordens de Produção. Cada posto só pode iniciar uma atividade se o processo anterior foi apontado como concluído.",
+    systemApplication: "No Allin-SO, os fluxos de processo definem as transições de status das Ordens de Produção. Cada posto só pode iniciar uma atividade se o processo anterior foi apontado como concluído.",
     commonErrors: [
       "Pular etapas de processo sem apontar no sistema (ex: enviar colchão para fechar sem apontar a colagem), gerando descompasso lógico no ERP.",
       "Executar tarefas de modo informal sem seguir a folha de processo padrão, gerando diferenças perceptíveis na firmeza do colchão."
@@ -1060,7 +1060,7 @@ export const modulesData: ModuleData[] = [
         },
         {
           id: "q13_2",
-          text: "Qual o maior benefício de integrar o roteiro de processos ao sistema Industrial OS?",
+          text: "Qual o maior benefício de integrar o roteiro de processos ao sistema Allin-SO?",
           options: [
             "O sistema impede que uma etapa seja iniciada antes que a anterior seja concluída, garantindo o fluxo físico planejado.",
             "Reduzir o consumo elétrico das lâmpadas.",
@@ -1113,7 +1113,7 @@ export const modulesData: ModuleData[] = [
       { label: "OP Concluída", description: "Entrada do produto final e baixa real de insumos." }
     ],
     practicalExample: "Se a OP de colchões King não for liberada a tempo no sistema, o almoxarife não separa as molas e a mesa de colagem fica ociosa aguardando os insumos chegarem do armazém.",
-    systemApplication: "No Industrial OS, a tela de Ordens de Produção permite acompanhar em tempo real o status de cada lote, ver o rendimento dos operadores e disparar a requisição de insumos.",
+    systemApplication: "No Allin-SO, a tela de Ordens de Produção permite acompanhar em tempo real o status de cada lote, ver o rendimento dos operadores e disparar a requisição de insumos.",
     commonErrors: [
       "Iniciar a produção física sem abrir a OP correspondente no sistema, gerando fabricação invisível de difícil rastreamento.",
       "Esquecer de encerrar a OP no sistema ao finalizar o lote, mantendo matérias-primas empenhadas e travando saldos de forma incorreta."
@@ -1192,7 +1192,7 @@ export const modulesData: ModuleData[] = [
       { label: "Digitar Perdas", description: "Registra se houve descarte de retalhos no posto." }
     ],
     practicalExample: "Sem apontamentos de parada, o sistema assume que a serra de corte trabalhou 8 horas seguidas. Mas, na verdade, ela ficou parada 3 horas aguardando o operador da empilhadeira trazer blocos. Sem dados, não há melhoria.",
-    systemApplication: "No Industrial OS, os operadores usam terminais de chão de fábrica simplificados (com telas de botões grandes ou tablets) para apontar de forma rápida sem burocracia.",
+    systemApplication: "No Allin-SO, os operadores usam terminais de chão de fábrica simplificados (com telas de botões grandes ou tablets) para apontar de forma rápida sem burocracia.",
     commonErrors: [
       "Acumular todos os apontamentos do dia para digitar apenas no fim do turno, gerando dados defasados e distorcidos.",
       "Apontar paradas genéricas como 'Outros' em vez de especificar 'Falta de Matéria-Prima' ou 'Manutenção', impossibilitando análises do PCP."
@@ -1273,7 +1273,7 @@ export const modulesData: ModuleData[] = [
       { label: "Inventário Rotativo", description: "Contagem diária de amostragem para corrigir erros de saldo." }
     ],
     practicalExample: "O sistema apontava que havia 100 fardos de molas pocket, mas fisicamente só existiam 12 fardos. O PCP agendou a produção e o setor de colagem parou porque o estoque real estava zerado. Falta de acuracidade quebra a fábrica.",
-    systemApplication: "No Industrial OS, cada movimentação de material gera um registro automático de histórico (rastreamento de FIFO/PEPS) e atualiza instantaneamente a posição física do inventário.",
+    systemApplication: "No Allin-SO, cada movimentação de material gera um registro automático de histórico (rastreamento de FIFO/PEPS) e atualiza instantaneamente a posição física do inventário.",
     commonErrors: [
       "Retirar matérias-primas físicas do almoxarifado sem dar a respectiva 'baixa' por requisição no sistema.",
       "Estocar produtos acabados no galpão sem endereçar o corredor e a prateleira, dificultando o carregamento dos caminhões."
@@ -1353,7 +1353,7 @@ export const modulesData: ModuleData[] = [
       { label: "Retrabalho ou Refugo", description: "Desmanche da costura defeituosa e nova costura." }
     ],
     practicalExample: "Um lote de 30 colchões foi devolvido porque o tecido da lateral encolheu ao ser costurado. A Qualidade identificou que a temperatura de secagem do tecido no fornecedor estava fora do padrão. A rastreabilidade por lote evitou que o problema afetasse mais clientes.",
-    systemApplication: "No Industrial OS, a Qualidade registra laudos de inspeção na entrada de MPs e no encerramento de OPs. Os checklists digitais guiam o operador nos pontos críticos que ele deve avaliar.",
+    systemApplication: "No Allin-SO, a Qualidade registra laudos de inspeção na entrada de MPs e no encerramento de OPs. Os checklists digitais guiam o operador nos pontos críticos que ele deve avaliar.",
     commonErrors: [
       "Liberar um colchão com mancha de sujeira sob a promessa de que 'o cliente não vai notar por estar embalado'.",
       "Não abrir o RNC no sistema para perdas recorrentes, impedindo que a gerência descubra que uma máquina de costura está estragando tecidos."
@@ -1433,7 +1433,7 @@ export const modulesData: ModuleData[] = [
       { label: "Consequência de Negligência", description: "Quebra súbita da engrenagem por atrito excessivo (Corretiva)." }
     ],
     practicalExample: "Ao implementar manutenção preventiva semanal nas fechadoras Tape Edge, uma fábrica de colchões aumentou a disponibilidade dessas máquinas de 72% para 96%, eliminando gargalos de fechamento.",
-    systemApplication: "No Industrial OS, a equipe de manutenção gerencia Ordens de Serviço (OS), cadastra peças sobressalentes e acompanha os alarmes de horas trabalhadas gerados diretamente pelas máquinas digitais.",
+    systemApplication: "No Allin-SO, a equipe de manutenção gerencia Ordens de Serviço (OS), cadastra peças sobressalentes e acompanha os alarmes de horas trabalhadas gerados diretamente pelas máquinas digitais.",
     commonErrors: [
       "Cancelar preventivas agendadas sob a justificativa de que 'temos muitas ordens urgentes para produzir', gerando quebras catastróficas dias depois.",
       "Não registrar as peças usadas no conserto no sistema, deixando o estoque de peças sobressalentes desatualizado."
@@ -1517,7 +1517,7 @@ export const modulesData: ModuleData[] = [
       { label: "Sequenciamento de OPs", description: "Disparar a fila de ordens otimizada para as máquinas." }
     ],
     practicalExample: "Uma fábrica reduziu em 30% os atrasos de entrega ao agrupar a costura de tecidos por cor (claros de manhã, escuros à tarde), eliminando a necessidade de trocar constantemente a linha de costura nas bobinas.",
-    systemApplication: "No Industrial OS, o PCP utiliza quadros interativos de sequenciamento (Gantt ou Kanban) para arrastar e soltar ordens nas máquinas, enxergando gargalos em tempo real.",
+    systemApplication: "No Allin-SO, o PCP utiliza quadros interativos de sequenciamento (Gantt ou Kanban) para arrastar e soltar ordens nas máquinas, enxergando gargalos em tempo real.",
     commonErrors: [
       "Sequenciar ordens sem verificar a disponibilidade de matérias-primas no estoque, gerando ordens travadas na linha.",
       "Liberar OPs com base na capacidade máxima sem deduzir tempos de manutenção preventiva programada."
@@ -1601,7 +1601,7 @@ export const modulesData: ModuleData[] = [
       { label: "Custo Unitário Total", description: "Base para o comercial definir o preço de venda saudável." }
     ],
     practicalExample: "Um colchão Casal Pocket custa R$ 600 em MP, R$ 50 em MOD (tempo dos postos) e R$ 50 em CIF. O custo total é R$ 700. Se o comercial vende o colchão por R$ 680 em uma promoção sem olhar o sistema, a fábrica tem prejuízo real.",
-    systemApplication: "No Industrial OS, a engenharia calcula o custo estimado ideal do colchão, e os apontamentos de produção e consumo real de lote revelam o custo real. O desvio entre o estimado e o real é mostrado em painéis de análise.",
+    systemApplication: "No Allin-SO, a engenharia calcula o custo estimado ideal do colchão, e os apontamentos de produção e consumo real de lote revelam o custo real. O desvio entre o estimado e o real é mostrado em painéis de análise.",
     commonErrors: [
       "Ignorar o custo de energia elétrica e manutenção das máquinas no cálculo de formação de preço de venda.",
       "Não registrar sobras de refugo de corte de tecido, acreditando que o custo do tecido consumido foi menor do que o real."
@@ -1627,7 +1627,7 @@ export const modulesData: ModuleData[] = [
         },
         {
           id: "q20_2",
-          text: "O que representa o 'Desvio de Custo' (Custo Estimado vs Custo Real) no Industrial OS?",
+          text: "O que representa o 'Desvio de Custo' (Custo Estimado vs Custo Real) no Allin-SO?",
           options: [
             "A velocidade do faturamento de notas.",
             "A diferença entre o custo projetado na engenharia (BOM e tempos padrão) e o custo de fato registrado pelos operadores nos apontamentos de consumo real e tempos de turno.",
@@ -1681,7 +1681,7 @@ export const modulesData: ModuleData[] = [
       { label: "OEE Consolidado", description: "Eficiência real global do ativo industrial." }
     ],
     practicalExample: "Uma colchoaria achava que precisava comprar uma nova máquina de costura de R$ 150.000 porque não dava conta dos pedidos. Ao medir o OEE, descobriu que o OEE da máquina atual era de apenas 42% por falta de material na linha. Ajustou-se o fluxo de abastecimento, o OEE subiu para 78% e a compra foi cancelada, economizando capital.",
-    systemApplication: "No Industrial OS, todos os apontamentos alimentam painéis gráficos que calculam o OEE por máquina, setor ou turno de forma instantânea.",
+    systemApplication: "No Allin-SO, todos os apontamentos alimentam painéis gráficos que calculam o OEE por máquina, setor ou turno de forma instantânea.",
     commonErrors: [
       "Calcular o OEE incluindo os tempos em que a fábrica estava fechada ou sem demanda planejada, distorcendo a eficiência operacional real.",
       "Lançar tempos fictícios de apontamento para fazer o OEE de um setor parecer artificialmente maior."
@@ -1747,7 +1747,7 @@ export const modulesData: ModuleData[] = [
     concepts: [
       {
         title: "A IA não cria dados, ela interpreta",
-        description: "A Inteligência Artificial do Industrial OS depende da acuracidade dos cadastros e apontamentos humanos para gerar valor. Se a fábrica lançar lixo, a IA gerará análises inúteis ('Garbage In, Garbage Out')."
+        description: "A Inteligência Artificial do Allin-SO depende da acuracidade dos cadastros e apontamentos humanos para gerar valor. Se a fábrica lançar lixo, a IA gerará análises inúteis ('Garbage In, Garbage Out')."
       },
       {
         title: "Capacidades do Copilot",
@@ -1762,7 +1762,7 @@ export const modulesData: ModuleData[] = [
       { label: "Decisão do Gestor", description: "Ação rápida recomendada para evitar paradas e perdas de margem." }
     ],
     practicalExample: "O Copilot enviou uma notificação: 'Atenção, o OEE do CT Tape Edge caiu 15% nos últimos 3 dias por paradas descritas como Falta de Fitilho. Verifique o estoque físico do Fitilho Branco ou a velocidade de separação do almoxarifado'. O supervisor verificou e viu que o carrinho de abastecimento estava quebrado.",
-    systemApplication: "No Industrial OS, você pode conversar por chat com o Copilot Industrial a qualquer momento para pedir relatórios, fazer perguntas operacionais complexas, ou pedir sugestões de sequenciamento de lote.",
+    systemApplication: "No Allin-SO, você pode conversar por chat com o Copilot Industrial a qualquer momento para pedir relatórios, fazer perguntas operacionais complexas, ou pedir sugestões de sequenciamento de lote.",
     commonErrors: [
       "Esperar que o Copilot resolva os problemas da fábrica sozinho sem que a equipe operacional tome as ações físicas recomendadas.",
       "Acreditar que a IA está errada quando ela alerta sobre desvios de custo, em vez de auditar as fichas técnicas (BOMs) desatualizadas no sistema."
@@ -1776,7 +1776,7 @@ export const modulesData: ModuleData[] = [
       questions: [
         {
           id: "q22_1",
-          text: "O que acontece se os operadores realizarem apontamentos de produção e perdas errados ou incompletos no Industrial OS?",
+          text: "O que acontece se os operadores realizarem apontamentos de produção e perdas errados ou incompletos no Allin-SO?",
           options: [
             "O Copilot corrigirá os dados físicos de forma mágica.",
             "As análises, recomendações e previsões geradas pelo Copilot serão imprecisas ou erradas, prejudicando a gestão da fábrica ('Garbage In, Garbage Out').",

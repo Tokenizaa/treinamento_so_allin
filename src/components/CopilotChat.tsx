@@ -20,7 +20,7 @@ export default function CopilotChat({ currentModule, activeSlideIndex }: Copilot
       {
         id: "msg_init_1",
         sender: "assistant",
-        text: "Olá! Sou o Copilot da plataforma Industrial OS. Estou monitorando seus slides de treinamento em tempo real.\n\nComo posso te ajudar com o conteúdo deste módulo hoje?",
+        text: "Olá! Sou o Copilot da plataforma Allin-SO. Estou monitorando seus slides de treinamento em tempo real.\n\nComo posso te ajudar com o conteúdo deste módulo hoje?",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ];
@@ -59,7 +59,7 @@ export default function CopilotChat({ currentModule, activeSlideIndex }: Copilot
     // Simulated context-aware response generator
     setTimeout(() => {
       const query = input.toLowerCase();
-      let responseText = `Como especialista do Industrial OS, analisei seu questionamento. No Módulo ${currentModule.id} (${currentModule.title}), nós modelamos exatamente esses conceitos físicos na base de dados para otimizar o fluxo de valor do colchão.`;
+      let responseText = `Como especialista do Allin-SO, analisei seu questionamento. No Módulo ${currentModule.id} (${currentModule.title}), nós modelamos exatamente esses conceitos físicos na base de dados para otimizar o fluxo de valor do colchão na Allin.`;
 
       if (query.includes('colchão') || query.includes('colchao') || query.includes('espuma')) {
         responseText = `Na fabricação de colchões, a espuma (seja D33, Viscoelástica ou Soft) é o material mais crítico. O Copilot monitora a perda por retalho nas serras de corte horizontal e vertical. O segredo de engenharia está em otimizar o empilhamento das placas para maximizar o rendimento da área útil de espuma.`;
@@ -68,11 +68,11 @@ export default function CopilotChat({ currentModule, activeSlideIndex }: Copilot
       } else if (query.includes('bom') || query.includes('engenharia') || query.includes('ficha técnica') || query.includes('estrutura')) {
         responseText = `A BOM (Bill of Materials) ou estrutura de produto mapeia todos os insumos. Para um colchão tradicional, o nível 0 é o produto acabado; o nível 1 engloba o bloco colado, o tampo quiltado e a faixa lateral bordada; o nível 2 desce até químicos de poliuretano, tecido de malha em rolo e fardos de molas pocket.`;
       } else if (query.includes('gargalo') || query.includes('layout') || query.includes('balanceamento')) {
-        responseText = `O gargalo dita o ritmo de toda a fábrica. Na colchoaria tradicional, o posto de fechamento (Tape Edge) costuma ser o gargalo devido à alta habilidade exigida do operador. No Industrial OS, nós calculamos os tempos de ciclo e distribuímos WIP (estoque em processo) taticamente antes desse posto para evitar que ele pare.`;
+        responseText = `O gargalo dita o ritmo de toda a fábrica. Na colchoaria tradicional, o posto de fechamento (Tape Edge) costuma ser o gargalo devido à alta habilidade exigida do operador. No Allin-SO, nós calculamos os tempos de ciclo e distribuímos WIP (estoque em processo) taticamente antes desse posto para evitar que ele pare.`;
       } else if (query.includes('exercício') || query.includes('desafio') || query.includes('dica') || query.includes('ajuda')) {
-        responseText = `Para superar o Desafio Prático do Módulo ${currentModule.id} ("${currentModule.exercise.title}"): leia atentamente as instruções da especificação no slide e lembre-se que no Industrial OS a modelagem física do estoque e o tempo de processo devem coincidir com o fluxo produtivo real sem gerar gargalos artificiais!`;
+        responseText = `Para superar o Desafio Prático do Módulo ${currentModule.id} ("${currentModule.exercise.title}"): leia atentamente as instruções da especificação no slide e lembre-se que no Allin-SO a modelagem física do estoque e o tempo de processo devem coincidir com o fluxo produtivo real sem gerar gargalos artificiais!`;
       } else if (query.includes('certificado')) {
-        responseText = `O seu certificado de Capacitação de Ouro do Industrial OS é desbloqueado assim que concluir todos os 22 módulos do curso. Você pode exportar o arquivo e imprimi-lo diretamente aqui no slide final de encerramento!`;
+        responseText = `O seu certificado de Capacitação de Ouro do Allin-SO é desbloqueado assim que concluir todos os 22 módulos do curso. Você pode exportar o arquivo e imprimi-lo diretamente aqui no slide final de encerramento!`;
       } else if (query.includes('slides') || query.includes('slide') || query.includes('navegar')) {
         responseText = `Você está lendo o Slide ${activeSlideIndex + 1} deste módulo. Você pode usar os botões [Anterior] e [Próximo] ou as setas direcionais [←] [→] do teclado para passar as páginas. Pressione a tecla [Espaço] para revelar novos tópicos explicativos no slide!`;
       }

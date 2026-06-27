@@ -1,6 +1,6 @@
 {
-  "name": "Treinamento Industrial OS",
-  "description": "Treinamento completo sobre os fundamentos de Engenharia de Produção aplicados a uma fábrica de colchões na plataforma Industrial OS.",
-  "requestFramePermissions": [],
+  "name": "Treinamento Allin-SO",
+  "description": "Treinamento completo sobre os fundamentos de Engenharia de Produção aplicados à fábrica de colchões Allin na plataforma Allin-SO.",
+  "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
