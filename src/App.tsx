@@ -17,6 +17,81 @@ import InteractiveExerciseRenderer from './components/InteractiveExerciseRendere
 import CopilotChat from './components/CopilotChat';
 import VirtualFactoryFloor from './components/VirtualFactoryFloor';
 
+// Dynamic voice narration script builder in Portuguese for Industrial OS Modules
+const getNarrationText = (module: ModuleData, slideIndex: number): string => {
+  switch (slideIndex) {
+    case 0:
+      return `Abertura do Módulo ${module.id}: ${module.title}. O objetivo pedagógico deste treinamento é: ${module.objective}. Vamos iniciar a apresentação do conteúdo.`;
+    case 1: {
+      const conceptsNarrative = module.concepts
+        .map((c, idx) => `Conceito número ${idx + 1}, ${c.title}: ${c.description}`)
+        .join(". ");
+      return `Conceitos fundamentais de engenharia para o módulo ${module.title}. Analisamos os seguintes pontos estratégicos: ${conceptsNarrative}. Clique diretamente nos tópicos para revelar as definições industriais completas.`;
+    }
+    case 2: {
+      const stepsNarrative = module.flowchartSteps
+        .map((step, idx) => `Passo ${idx + 1}, ${step.label}: ${step.description}`)
+        .join(". ");
+      return `Fluxo operacional sequencial de valor. Acompanhe o caminho físico e lógico dos materiais de ponta a ponta: ${stepsNarrative}. Como representação física no galpão de fábrica: ${module.illustratedExplanation}`;
+    }
+    case 3:
+      return `Caso prático versus modelagem digital. No mundo real, do chão de fábrica físico, ${module.practicalExample}. Para conectar essa realidade ao nosso sistema industrial, no Industrial OS, ${module.systemApplication}`;
+    case 4: {
+      const errorsNarrative = module.commonErrors.join(". ");
+      const summaryNarrative = module.summary.join(". ");
+      return `Diretrizes de conformidade operacional. Para garantir o sucesso da equipe, evite estes erros comuns de processo: ${errorsNarrative}. Como práticas recomendadas essenciais ao operador, lembre-se de que: ${summaryNarrative}`;
+    }
+    default:
+      return "";
+  }
+};
+
+// Dynamic step-by-step voice narration script builder for real-time synchronization
+const getStepNarrationText = (module: ModuleData, slideIndex: number, step: number): string => {
+  switch (slideIndex) {
+    case 0:
+      return `Abertura do Módulo ${module.id}: ${module.title}. O objetivo pedagógico deste treinamento é: ${module.objective}. Vamos iniciar a apresentação do conteúdo.`;
+    case 1: {
+      const concept = module.concepts[step - 1];
+      if (concept) {
+        return `Conceito número ${step}: ${concept.title}. ${concept.description}`;
+      }
+      return "";
+    }
+    case 2: {
+      const flowStep = module.flowchartSteps[step - 1];
+      if (flowStep) {
+        let text = `Passo número ${step} do fluxo: ${flowStep.label}. ${flowStep.description}`;
+        if (step === module.flowchartSteps.length) {
+          text += `. Em resumo, sobre a representação física no galpão de fábrica: ${module.illustratedExplanation}`;
+        }
+        return text;
+      }
+      return "";
+    }
+    case 3: {
+      if (step === 1) {
+        return `Análise do caso prático no chão de fábrica físico: ${module.practicalExample}`;
+      } else if (step === 2) {
+        return `Para conectar essa realidade ao nosso sistema industrial, no Industrial OS: ${module.systemApplication}`;
+      }
+      return "";
+    }
+    case 4: {
+      if (step === 1) {
+        const errors = module.commonErrors.join(". ");
+        return `Diretrizes operacionais de conformidade. Evite estes erros comuns de configuração de processo: ${errors}`;
+      } else if (step === 2) {
+        const summary = module.summary.join(". ");
+        return `Como práticas recomendadas essenciais ao operador, lembre-se de que: ${summary}`;
+      }
+      return "";
+    }
+    default:
+      return "";
+  }
+};
+
 export default function App() {
   // --- User Progress State (Always Unlocked) ---
   const [progress, setProgress] = useState<UserProgress>(() => {
@@ -59,6 +134,133 @@ export default function App() {
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(progress.userName);
 
+  // --- Toast Notification State ---
+  const [toast, setToast] = useState<{ message: string; subMessage?: string } | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 4500);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // --- Voice Narration States ---
+  const [autoNarrate, setAutoNarrate] = useState<boolean>(false);
+  const [isNarrating, setIsNarrating] = useState<boolean>(false);
+  const [narratorRate, setNarratorRate] = useState<number>(0.95);
+  const [narratorSubtitleText, setNarratorSubtitleText] = useState<string>("");
+  const [showNarratorSubtitles, setShowNarratorSubtitles] = useState<boolean>(true);
+
+  // References to handle accurate synchronization of automatic transitions
+  const activeAutoPlayTimeoutRef = useRef<any>(null);
+
+  const clearAutoPlayTimeout = () => {
+    if (activeAutoPlayTimeoutRef.current) {
+      clearTimeout(activeAutoPlayTimeoutRef.current);
+      activeAutoPlayTimeoutRef.current = null;
+    }
+  };
+
+  // Helper to estimate the duration of a spoken text in ms to feed the countdown timer
+  const getEstimatedSpeechDuration = (text: string, rate: number): number => {
+    if (!text) return 5000;
+    const charRate = 14; // Characters spoken per second on average
+    const speakingTimeMs = (text.length / charRate) * 1000 * (1 / rate);
+    // Add 1200ms of entry padding and 1800ms post-narration wait time for comfortable transitions
+    return Math.max(4500, Math.min(22000, speakingTimeMs + 1200 + 1800));
+  };
+
+  // Core speak action using browser SpeechSynthesis with event listeners for autoPlay progression
+  const speakText = (text: string) => {
+    if (!('speechSynthesis' in window)) return;
+
+    window.speechSynthesis.cancel();
+    clearAutoPlayTimeout();
+    setIsNarrating(false);
+    setNarratorSubtitleText("");
+
+    if (!text) return;
+
+    // Slight delay to ensure previous speech has cancelled cleanly
+    setTimeout(() => {
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = narratorRate;
+        utterance.pitch = 1.05; // Slightly pleasant high-fidelity corporate voice
+
+        // Locate native Portuguese voice
+        const voices = window.speechSynthesis.getVoices();
+        const ptVoice = voices.find(v => v.lang.toLowerCase().includes('pt'));
+        if (ptVoice) {
+          utterance.voice = ptVoice;
+        }
+
+        utterance.onstart = () => {
+          setIsNarrating(true);
+          setNarratorSubtitleText(text);
+        };
+
+        utterance.onend = () => {
+          setIsNarrating(false);
+          
+          // Automatically advance if autoPlay is active
+          if (autoPlay) {
+            clearAutoPlayTimeout();
+            activeAutoPlayTimeoutRef.current = setTimeout(() => {
+              handleNextAction();
+            }, 1800); // Wait 1.8 seconds of comfort space, then advance
+          }
+        };
+
+        utterance.onerror = (e) => {
+          console.warn("Speech Synthesis error:", e);
+          setIsNarrating(false);
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error("Failed to run speech synthesis:", err);
+        setIsNarrating(false);
+      }
+    }, 60);
+  };
+
+  // Toggle narration manually for the current slide/step
+  const handleToggleNarration = () => {
+    if (isNarrating) {
+      window.speechSynthesis.cancel();
+      clearAutoPlayTimeout();
+      setIsNarrating(false);
+      setNarratorSubtitleText("");
+    } else {
+      const text = getStepNarrationText(currentModule, currentSlideIndex, revealedCount);
+      speakText(text);
+    }
+  };
+
+  // Cancel any speech on unmount
+  useEffect(() => {
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      clearAutoPlayTimeout();
+    };
+  }, []);
+
+  // Sync voice list load triggers (important for async load on browsers like Chrome)
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return;
+    const handleVoicesChanged = () => {};
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+    };
+  }, []);
+
   // --- Active Module Data ---
   const currentModule = modulesData.find(m => m.id === activeModuleId) || modulesData[0];
 
@@ -66,13 +268,37 @@ export default function App() {
   useEffect(() => {
     setCurrentSlideIndex(0);
     setRevealedCount(1);
+    setShowNarratorSubtitles(true);
   }, [activeModuleId]);
 
-  // Reset revealed topic count on changing active slide index
+  // Reset revealed topic count on changing active slide index & trigger auto play narration
   useEffect(() => {
     setRevealedCount(1);
     setTimerProgress(0);
+    setShowNarratorSubtitles(true);
   }, [currentSlideIndex]);
+
+  // Unified speech narration triggers for perfect real-time coordination
+  useEffect(() => {
+    clearAutoPlayTimeout();
+
+    if (autoNarrate || autoPlay) {
+      const text = getStepNarrationText(currentModule, currentSlideIndex, revealedCount);
+      if (text) {
+        speakText(text);
+      }
+    } else {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setIsNarrating(false);
+        setNarratorSubtitleText("");
+      }
+    }
+
+    return () => {
+      clearAutoPlayTimeout();
+    };
+  }, [activeModuleId, currentSlideIndex, revealedCount, autoNarrate, autoPlay]);
 
   // Low-latency Synthesized Sound Effects
   const playSound = (type: 'reveal' | 'slide' | 'success' | 'error') => {
@@ -167,6 +393,12 @@ export default function App() {
 
         playSound('success');
 
+        // Trigger Toast Notification
+        setToast({
+          message: `Módulo ${activeModuleId} Concluído!`,
+          subMessage: `O progresso do deck "${currentModule.title}" foi salvo com sucesso no Industrial OS.`
+        });
+
         // Advance module or wrap up
         if (activeModuleId < 22) {
           setActiveModuleId(activeModuleId + 1);
@@ -245,22 +477,36 @@ export default function App() {
       return;
     }
 
-    const intervalTime = 100; 
-    const totalDuration = 7000; 
+    const currentText = getStepNarrationText(currentModule, currentSlideIndex, revealedCount);
+    const hasSpeechSupport = ('speechSynthesis' in window);
+    
+    // Unify duration: estimate if speech is active, fallback to 7 seconds if speech is blocked/inactive
+    const totalDuration = hasSpeechSupport && currentText 
+      ? getEstimatedSpeechDuration(currentText, narratorRate)
+      : 7000;
+
+    const intervalTime = 50; 
     let elapsed = 0;
 
     const interval = setInterval(() => {
       elapsed += intervalTime;
-      setTimerProgress((elapsed / totalDuration) * 100);
+      setTimerProgress(Math.min(100, (elapsed / totalDuration) * 100));
 
-      if (elapsed >= totalDuration) {
-        handleNextAction();
-        elapsed = 0;
+      // Dual-channel fallback safety net:
+      // If speech synthesis gets stuck, or is blocked by browser permissions, or fails to emit 'onend',
+      // this timer will automatically advance the slide once elapsed reaches totalDuration + 1000ms,
+      // but only if the voice is not actively speaking.
+      const fallbackLimit = totalDuration + 1000;
+      if (elapsed >= fallbackLimit) {
+        if (!isNarrating || !hasSpeechSupport) {
+          handleNextAction();
+          elapsed = 0;
+        }
       }
     }, intervalTime);
 
     return () => clearInterval(interval);
-  }, [autoPlay, currentSlideIndex, revealedCount]);
+  }, [autoPlay, currentSlideIndex, revealedCount, isNarrating, narratorRate]);
 
   // Filter list of chapters based on search query
   const filteredModules = modulesData.filter(m => 
@@ -562,7 +808,7 @@ export default function App() {
               <div className="absolute bottom-0 right-0 w-72 h-72 bg-emerald-500/[0.03] rounded-full blur-3xl pointer-events-none"></div>
 
               {/* SLIDE UPPER METADATA HEADER */}
-              <div className="bg-slate-950/90 backdrop-blur-sm px-6 py-3.5 border-b border-slate-800 flex items-center justify-between text-xs sm:text-sm font-mono text-slate-400 z-10 relative">
+              <div className="bg-slate-950/90 backdrop-blur-sm px-6 py-3.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm font-mono text-slate-400 z-10 relative">
                 <div className="flex items-center gap-2">
                   <span className="text-amber-500 font-extrabold tracking-wider bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">DECK {currentModule.id.toString().padStart(2, '0')}</span>
                   <span className="text-slate-600 font-bold">•</span>
@@ -570,8 +816,92 @@ export default function App() {
                   <span className="hidden sm:inline text-slate-600 font-bold">•</span>
                   <span className="hidden sm:inline font-bold text-slate-300">{currentModule.title}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] sm:text-xs bg-slate-900 border border-slate-800 text-amber-400 font-black uppercase tracking-widest px-3 py-1 rounded-md">
+                <div className="flex items-center gap-2.5">
+                  {/* Narrator Voice Console */}
+                  <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg p-1">
+                    {/* Visual Soundwave Indicator when active */}
+                    {isNarrating && (
+                      <div className="flex items-end gap-0.5 h-3.5 px-1 animate-pulse" title="Narrador por voz ativo">
+                        <motion.div className="w-0.5 bg-amber-500 rounded-full" animate={{ height: [4, 14, 4] }} transition={{ repeat: Infinity, duration: 0.6 }} />
+                        <motion.div className="w-0.5 bg-amber-500 rounded-full" animate={{ height: [9, 5, 9] }} transition={{ repeat: Infinity, duration: 0.7 }} />
+                        <motion.div className="w-0.5 bg-amber-500 rounded-full" animate={{ height: [3, 11, 3] }} transition={{ repeat: Infinity, duration: 0.5 }} />
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleToggleNarration}
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-bold font-mono transition-all flex items-center gap-1.5 uppercase ${
+                        isNarrating 
+                          ? 'bg-amber-500 text-slate-950 font-black animate-pulse shadow-md' 
+                          : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                      }`}
+                      title={isNarrating ? "Parar Narração por Voz" : "Ouvir Narração por Voz (Assistente)"}
+                    >
+                      {isNarrating ? (
+                        <>
+                          <Volume2 className="w-3.5 h-3.5 animate-bounce" /> Parar Voz
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3 h-3 text-amber-500" /> Ouvir Slide
+                        </>
+                      )}
+                    </button>
+
+                    <span className="w-px h-3 bg-slate-800" />
+
+                    {/* Auto play toggle */}
+                    <button
+                      onClick={() => {
+                        const next = !autoNarrate;
+                        setAutoNarrate(next);
+                        if (next) {
+                          const text = getNarrationText(currentModule, currentSlideIndex);
+                          speakText(text);
+                        } else {
+                          window.speechSynthesis.cancel();
+                          setIsNarrating(false);
+                          setNarratorSubtitleText("");
+                        }
+                      }}
+                      className={`px-2 py-1 rounded-md text-[10px] font-bold font-mono transition-all flex items-center gap-1 ${
+                        autoNarrate 
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                          : 'text-slate-500 hover:text-slate-300'
+                      }`}
+                      title="Auto-narrar ao mudar de slide"
+                    >
+                      <Clock className="w-3 h-3" /> Auto: {autoNarrate ? "ON" : "OFF"}
+                    </button>
+
+                    <span className="w-px h-3 bg-slate-800" />
+
+                    {/* Rate/Speed adjustment selector */}
+                    <button
+                      onClick={() => {
+                        let nextRate = 0.95;
+                        if (narratorRate === 0.95) nextRate = 1.15;
+                        else if (narratorRate === 1.15) nextRate = 1.35;
+                        else nextRate = 0.95;
+                        
+                        setNarratorRate(nextRate);
+                        
+                        // If currently playing, restart with new rate
+                        if (isNarrating) {
+                          const text = getNarrationText(currentModule, currentSlideIndex);
+                          setTimeout(() => {
+                            speakText(text);
+                          }, 100);
+                        }
+                      }}
+                      className="px-2 py-1 hover:bg-slate-800 rounded text-[9px] text-slate-400 hover:text-white font-mono"
+                      title="Alterar velocidade da voz"
+                    >
+                      Vel: {narratorRate === 0.95 ? "0.9x" : narratorRate === 1.15 ? "1.1x" : "1.3x"}
+                    </button>
+                  </div>
+
+                  <span className="text-[10px] sm:text-xs bg-slate-950 border border-slate-800 text-amber-400 font-black uppercase tracking-widest px-3 py-1 rounded-md hidden lg:inline-block">
                     Chão de Fábrica Inteligente
                   </span>
                 </div>
@@ -901,6 +1231,38 @@ export default function App() {
                 </AnimatePresence>
               </div>
 
+              {/* NARRATOR SUBTITLES HUD OVERLAY */}
+              <AnimatePresence>
+                {isNarrating && narratorSubtitleText && showNarratorSubtitles && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 max-w-2xl w-[92%] bg-slate-950/95 border-2 border-amber-500/30 px-5 py-3 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-3.5"
+                  >
+                    <div className="p-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl shrink-0">
+                      <Volume2 className="w-4 h-4 animate-pulse text-amber-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[9px] font-mono text-amber-500 font-extrabold uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+                        AUDIODESCRIÇÃO ATIVA • CHÃO DE FÁBRICA
+                      </div>
+                      <p className="text-xs text-slate-100 font-semibold leading-relaxed mt-0.5 max-h-16 overflow-y-auto">
+                        {narratorSubtitleText}
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setShowNarratorSubtitles(false)}
+                      className="text-slate-500 hover:text-white transition-colors p-1 hover:bg-slate-900 rounded-lg shrink-0"
+                      title="Ocultar legenda"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* AUTOMATIC TIMED COUNTDOWN BAR */}
               {autoPlay && (
                 <div className="w-full bg-slate-950 h-1">
@@ -1081,6 +1443,40 @@ export default function App() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* FLOATING SUCCESS TOAST */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.93 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-2xl backdrop-blur-md flex items-start gap-3.5"
+          >
+            <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl mt-0.5 shrink-0">
+              <CheckCircle2 className="w-5 h-5 animate-bounce" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <h4 className="text-sm font-bold text-white font-mono flex items-center gap-1.5 uppercase tracking-wide">
+                {toast.message} <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+              </h4>
+              <p className="text-[11px] text-slate-300 leading-normal font-medium">
+                {toast.subMessage}
+              </p>
+              <div className="text-[9px] text-emerald-400 font-mono flex items-center gap-1 font-bold pt-1">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
+                CONEXÃO SEGURA • PROGRESSO SALVO COM SUCESSO
+              </div>
+            </div>
+            <button 
+              onClick={() => setToast(null)}
+              className="text-slate-500 hover:text-white transition-colors shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
       
