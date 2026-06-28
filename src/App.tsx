@@ -7,7 +7,7 @@ import {
   Send, ChevronRight, ChevronLeft, ArrowRight, 
   BookOpen, Puzzle, FileText, Check, RotateCcw, User, Printer, Clock,
   Presentation, PlayCircle, Volume2, VolumeX, Maximize2, Minimize2, Sparkles, Menu, X,
-  Mic, MicOff, HelpCircle
+  Mic, MicOff, HelpCircle, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { modulesData } from './data/modulesData';
@@ -18,6 +18,10 @@ import InteractiveExerciseRenderer from './components/InteractiveExerciseRendere
 import CopilotChat from './components/CopilotChat';
 import VirtualFactoryFloor from './components/VirtualFactoryFloor';
 import { WelcomePage } from './components/WelcomePage';
+import { InteractiveTour } from './components/InteractiveTour';
+import { Tooltip } from './components/Tooltip';
+import { ModuleQuiz } from './components/ModuleQuiz';
+import { AllInLogo } from './components/AllInLogo';
 
 // Dynamic voice narration script builder in Portuguese for Allin-SO Modules
 const getNarrationText = (module: ModuleData, slideIndex: number): string => {
@@ -43,6 +47,8 @@ const getNarrationText = (module: ModuleData, slideIndex: number): string => {
       const summaryNarrative = module.summary.join(". ");
       return `Diretrizes de conformidade operacional. Para garantir o sucesso da equipe, evite estes erros comuns de processo: ${errorsNarrative}. Como práticas recomendadas essenciais ao operador, lembre-se de que: ${summaryNarrative}`;
     }
+    case 5:
+      return `Desafio de Consolidação. Responda ao quiz rápido de múltipla escolha para validar o seu aprendizado técnico neste módulo.`;
     default:
       return "";
   }
@@ -89,6 +95,8 @@ const getStepNarrationText = (module: ModuleData, slideIndex: number, step: numb
       }
       return "";
     }
+    case 5:
+      return `Desafio de Consolidação. Responda ao quiz rápido de múltipla escolha para validar o seu aprendizado técnico neste módulo.`;
     default:
       return "";
   }
@@ -139,6 +147,19 @@ export default function App() {
   const [timerProgress, setTimerProgress] = useState<number>(0);
   const [presentationMode, setPresentationMode] = useState<boolean>(false);
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
+  const [showTour, setShowTour] = useState<boolean>(false);
+  const [showResetModal, setShowResetModal] = useState<boolean>(false);
+
+  // Auto-start tour for new visitors with a small delay
+  useEffect(() => {
+    const isCompleted = localStorage.getItem('allin_so_tour_completed');
+    if (isCompleted !== 'true') {
+      const timer = setTimeout(() => {
+        setShowTour(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Layout Sidebars/Panels Toggles
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
@@ -163,7 +184,7 @@ export default function App() {
 
   // --- Voice Narration States ---
   const [isNarrating, setIsNarrating] = useState<boolean>(false);
-  const [narratorRate, setNarratorRate] = useState<number>(1.1);
+  const [narratorRate, setNarratorRate] = useState<number>(1.3);
   const [narratorSubtitleText, setNarratorSubtitleText] = useState<string>("");
   const [showNarratorSubtitles, setShowNarratorSubtitles] = useState<boolean>(true);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -282,27 +303,27 @@ export default function App() {
 
         let selectedVoice = null;
 
-        // Female voice names to search for
-        const femaleNames = ['luciana', 'maria', 'heloisa', 'joana', 'leticia', 'victoria', 'daniela', 'francisca', 'sonia', 'noemi', 'yelda', 'zita', 'google português'];
+        // Male voice names to search for (e.g. Daniel, Felipe, Antonio, Ricardo, Lucas, Thiago, Guilherme, Heitor, Diogo)
+        const maleNames = ['daniel', 'antonio', 'felipe', 'ricardo', 'lucas', 'thiago', 'guilherme', 'heitor', 'diogo'];
 
-        // 1. High-fidelity LOCAL system female voices (most robust in iframe sandboxes)
+        // 1. High-fidelity LOCAL system male voices (most robust in iframe sandboxes)
         selectedVoice = ptVoices.find(v => {
           const name = v.name.toLowerCase();
-          const isFemale = femaleNames.some(fn => name.includes(fn));
-          return isFemale && v.localService;
+          const isMale = maleNames.some(mn => name.includes(mn));
+          return isMale && v.localService;
         });
 
-        // 2. Any local system Portuguese voice
-        if (!selectedVoice) {
-          selectedVoice = ptVoices.find(v => v.localService);
-        }
-
-        // 3. Any high-fidelity Portuguese female voice (including online streaming ones)
+        // 2. Any Portuguese voice that matches a male name
         if (!selectedVoice) {
           selectedVoice = ptVoices.find(v => {
             const name = v.name.toLowerCase();
-            return femaleNames.some(fn => name.includes(fn));
+            return maleNames.some(mn => name.includes(mn));
           });
+        }
+
+        // 3. Any local system Portuguese voice
+        if (!selectedVoice) {
+          selectedVoice = ptVoices.find(v => v.localService);
         }
 
         // 4. Any other pt-BR voice
@@ -632,6 +653,9 @@ export default function App() {
     setRevealedCount(1);
     setTimerProgress(0);
     setShowNarratorSubtitles(true);
+    if (currentSlideIndex === 5) {
+      setAutoPlay(false);
+    }
   }, [currentSlideIndex]);
 
   // Unified speech narration triggers for perfect real-time coordination
@@ -734,10 +758,22 @@ export default function App() {
       playSound('reveal');
     } else {
       // Fully revealed, change slide
-      if (currentSlideIndex < 4) {
+      if (currentSlideIndex < 5) {
         setCurrentSlideIndex(prev => prev + 1);
+        setRevealedCount(1);
         playSound('slide');
       } else {
+        // Enforce quiz completion on Slide 5
+        const isQuizCompleted = progress.quizScores[activeModuleId] !== undefined;
+        if (!isQuizCompleted) {
+          playSound('error');
+          setToast({
+            message: `Responda o Quiz!`,
+            subMessage: `É necessário concluir o quiz com sucesso antes de avançar para o próximo módulo.`
+          });
+          return;
+        }
+
         // Complete current module
         setProgress(prev => {
           const updatedCompleted = prev.completedModules.includes(activeModuleId)
@@ -783,11 +819,11 @@ export default function App() {
       setRevealedCount(getMaxRevealsForSlide(prevSlide));
       playSound('slide');
     } else if (activeModuleId > 1) {
-      // Go to previous module's last slide
+      // Go to previous module's last slide (Slide 5: Quiz)
       setActiveModuleId(activeModuleId - 1);
       setTimeout(() => {
-        setCurrentSlideIndex(4);
-        setRevealedCount(getMaxRevealsForSlide(4));
+        setCurrentSlideIndex(5);
+        setRevealedCount(getMaxRevealsForSlide(5));
       }, 50);
       playSound('slide');
     } else {
@@ -798,18 +834,22 @@ export default function App() {
   };
 
   const handleResetProgress = () => {
-    if (confirm("Tem certeza de que deseja redefinir os módulos que foram marcados como apresentados?")) {
-      const resetState = {
-        currentModuleId: 1,
-        completedModules: [],
-        quizScores: {},
-        exerciseCompleted: {},
-        userName: progress.userName
-      };
-      setProgress(resetState);
-      setActiveModuleId(1);
-      localStorage.setItem('industrial_os_training_progress', JSON.stringify(resetState));
-    }
+    setShowResetModal(true);
+  };
+
+  const confirmResetProgress = () => {
+    const resetState = {
+      currentModuleId: 1,
+      completedModules: [],
+      quizScores: {},
+      exerciseCompleted: {},
+      userName: progress.userName
+    };
+    setProgress(resetState);
+    setActiveModuleId(1);
+    localStorage.setItem('industrial_os_training_progress', JSON.stringify(resetState));
+    setShowResetModal(false);
+    playSound('slide');
   };
 
   // --- Keyboard arrows and Spacebar listeners ---
@@ -921,12 +961,12 @@ export default function App() {
       {/* 1. TOP HEADER BAR */}
       <header id="header" className="bg-slate-900 border-b border-slate-800 px-3 sm:px-6 py-1.5 sm:py-2.5 flex flex-wrap items-center justify-between sticky top-0 z-40 gap-2 sm:gap-4 shadow-lg">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-1.5 sm:p-2 bg-amber-500 rounded-lg text-slate-950 shadow-md">
-            <Presentation className="w-4 h-4 sm:w-5 sm:h-5" />
+          <div className="flex-shrink-0 select-none pointer-events-none">
+            <AllInLogo size={36} className="drop-shadow-[0_0_8px_rgba(245,158,11,0.2)]" />
           </div>
           <div>
-            <h1 className="text-sm sm:text-lg font-bold tracking-tight text-white font-mono flex items-center gap-1.5 sm:gap-2">
-              INDUSTRIAL OS <span className="text-amber-500 text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 bg-amber-500/10 rounded border border-amber-500/30">SLIDES</span>
+            <h1 className="text-sm sm:text-lg font-bold tracking-tight text-white font-mono flex items-center gap-1.5 sm:gap-2 select-none">
+              AllIn-SO <span className="text-amber-500 text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 bg-amber-500/10 rounded border border-amber-500/30 font-black">PLATFORM</span>
             </h1>
             <p className="text-[9px] sm:text-[10px] text-slate-400">Capacitação do Chão de Fábrica</p>
           </div>
@@ -935,6 +975,7 @@ export default function App() {
         {/* CLEAR, HIGHLY-VISIBLE TOGGLE BUTTONS - SOLVES FIRST SCREEN CONFUSION */}
         <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950 p-1 sm:p-1.5 rounded-xl border border-slate-800">
           <button
+            id="sidebar-toggle"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             title={sidebarOpen ? "Ocultar Menu Lateral com 22 Módulos" : "Exibir Menu Lateral com 22 Módulos"}
             className={`px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-mono font-bold flex items-center gap-1.5 transition-all ${
@@ -950,6 +991,7 @@ export default function App() {
           </button>
           
           <button
+            id="drawer-toggle"
             onClick={() => setDrawerOpen(!drawerOpen)}
             title={drawerOpen ? "Ocultar Painel de Apoio" : "Exibir Painel de Apoio (Fábrica + Copiloto)"}
             className={`px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-mono font-bold flex items-center gap-1.5 transition-all ${
@@ -969,32 +1011,46 @@ export default function App() {
         <div className="flex items-center gap-5">
           {/* Sounds and Playback Toggles */}
           <div className="flex items-center bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 gap-3">
-            <button 
-              onClick={() => setSoundOn(!soundOn)}
-              title={soundOn ? "Desativar efeitos sonoros" : "Ativar efeitos sonoros"}
-              className={`p-1 rounded transition-colors ${soundOn ? 'text-amber-500 hover:text-amber-400' : 'text-slate-600 hover:text-slate-400'}`}
-            >
-              {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
+            <Tooltip content="Iniciar o Tour de Boas-vindas interativo" position="bottom">
+              <button 
+                onClick={() => setShowTour(true)}
+                title="Iniciar Tour de Boas-vindas"
+                className="p-1 rounded text-slate-400 hover:text-amber-500 transition-all flex items-center gap-1 hover:scale-[1.1] active:scale-95"
+              >
+                <Compass className="w-4 h-4 text-amber-500 animate-pulse" />
+              </button>
+            </Tooltip>
             <span className="w-px h-3 bg-slate-800" />
-            <button 
-              onClick={() => {
-                const state = !presentationMode;
-                setPresentationMode(state);
-                if (state) {
-                  setSidebarOpen(false);
-                  setDrawerOpen(false);
-                } else {
-                  setSidebarOpen(true);
-                  setDrawerOpen(true);
-                }
-              }}
-              title={presentationMode ? "Sair da Tela Cheia" : "Modo Apresentação (Projeção)"}
-              className={`p-1 rounded transition-colors flex items-center gap-1 text-xs font-mono font-bold ${presentationMode ? 'text-amber-500' : 'text-slate-400 hover:text-white'}`}
-            >
-              {presentationMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-              <span className="hidden sm:inline">Modo Projeção</span>
-            </button>
+            <Tooltip content={soundOn ? "Desativar efeitos sonoros de clique e transição" : "Ativar efeitos sonoros de clique e transição"} position="bottom">
+              <button 
+                onClick={() => setSoundOn(!soundOn)}
+                title={soundOn ? "Desativar efeitos sonoros" : "Ativar efeitos sonoros"}
+                className={`p-1 rounded transition-colors ${soundOn ? 'text-amber-500 hover:text-amber-400' : 'text-slate-600 hover:text-slate-400'}`}
+              >
+                {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </button>
+            </Tooltip>
+            <span className="w-px h-3 bg-slate-800" />
+            <Tooltip content={presentationMode ? "Sair do modo de projeção focada" : "Modo de projeção limpa em tela cheia para foco"} position="bottom">
+              <button 
+                onClick={() => {
+                  const state = !presentationMode;
+                  setPresentationMode(state);
+                  if (state) {
+                    setSidebarOpen(false);
+                    setDrawerOpen(false);
+                  } else {
+                    setSidebarOpen(true);
+                    setDrawerOpen(true);
+                  }
+                }}
+                title={presentationMode ? "Sair da Tela Cheia" : "Modo Apresentação (Projeção)"}
+                className={`p-1 rounded transition-colors flex items-center gap-1 text-xs font-mono font-bold ${presentationMode ? 'text-amber-500' : 'text-slate-400 hover:text-white'}`}
+              >
+                {presentationMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                <span className="hidden sm:inline">Modo Projeção</span>
+              </button>
+            </Tooltip>
           </div>
 
           <div className="text-right hidden md:block">
@@ -1064,56 +1120,16 @@ export default function App() {
             </div>
           </div>
           <div className="p-3 border-b border-slate-850">
-            <div className="relative flex items-center gap-1.5">
-              <div className="relative flex-1">
-                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
-                <input 
-                  type="text" 
-                  placeholder="Pesquisar ou falar..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 pl-8 pr-8 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500"
-                />
-                
-                {/* Voice search button inside input */}
-                <button
-                  onClick={handleToggleVoiceSearch}
-                  className={`absolute right-2 top-1.5 p-1 rounded-md transition-all ${
-                    isListening 
-                      ? 'text-red-500 bg-red-500/10 animate-pulse border border-red-500/20' 
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
-                  title={isListening ? "Parar de ouvir" : "Falar comando"}
-                >
-                  {isListening ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-
-              {/* Speech Commands Info Button */}
-              <button
-                onClick={() => setShowVoiceHelpModal(true)}
-                className="p-1.5 text-slate-400 hover:text-white bg-slate-950 border border-slate-800 rounded-lg hover:border-slate-700 transition-all shrink-0"
-                title="Comandos de Voz Disponíveis"
-              >
-                <HelpCircle className="w-3.5 h-3.5" />
-              </button>
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+              <input 
+                type="text" 
+                placeholder="Pesquisar módulos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500"
+              />
             </div>
-
-            {/* Listening Banner */}
-            {isListening && (
-              <div className="mt-2 bg-red-500/10 border border-red-500/20 rounded-lg p-2 flex items-center justify-between text-[10px]">
-                <div className="flex items-center gap-1.5 text-red-400 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping shrink-0" />
-                  <span className="truncate">{voiceStatus || "Ouvindo..."}</span>
-                </div>
-                <button 
-                  onClick={() => setShowVoiceHelpModal(true)}
-                  className="text-[10px] text-amber-500 hover:underline font-bold shrink-0"
-                >
-                  Ajuda
-                </button>
-              </div>
-            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -1208,6 +1224,7 @@ export default function App() {
               onToggleVoiceCommand={handleToggleVoiceSearch}
               onOpenVoiceHelp={() => setShowVoiceHelpModal(true)}
               getModuleIcon={getModuleIcon}
+              onStartTour={() => setShowTour(true)}
             />
           ) : (
             <>
@@ -1276,8 +1293,8 @@ export default function App() {
               <div className="bg-slate-950/90 backdrop-blur-sm px-6 py-3.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm font-mono text-slate-400 z-10 relative">
                 <div className="flex items-center gap-2">
                   <span className="text-amber-500 font-extrabold tracking-wider bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">DECK {currentModule.id.toString().padStart(2, '0')}</span>
-                  <span className="text-slate-600 font-bold">•</span>
-                  <span className="text-slate-200 font-bold">SLIDE {currentSlideIndex + 1} de 5</span>
+                  <span className="text-slate-650 font-bold">•</span>
+                  <span className="text-slate-200 font-bold">SLIDE {currentSlideIndex + 1} de 6</span>
                   <span className="hidden sm:inline text-slate-600 font-bold">•</span>
                   <span className="hidden sm:inline font-bold text-slate-300">{currentModule.title}</span>
                 </div>
@@ -1293,51 +1310,56 @@ export default function App() {
                       </div>
                     )}
 
-                    <button
-                      onClick={handleToggleNarration}
-                      className={`px-4 py-2 sm:px-5 sm:py-2 rounded-xl text-xs sm:text-xs font-black font-mono transition-all flex items-center gap-2 uppercase tracking-wider ${
-                        autoPlay 
-                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black animate-pulse shadow-[0_0_20px_rgba(245,158,11,0.6)] scale-105 border border-amber-400' 
-                          : 'bg-amber-500/10 text-amber-400 hover:text-amber-300 border-2 border-amber-500/40 hover:border-amber-500/60 font-extrabold shadow-[0_0_10px_rgba(245,158,11,0.15)] hover:scale-105'
-                      }`}
-                      title={autoPlay ? "Pausar Apresentador de Voz (Narração + Avanço Autônomo)" : "Iniciar Apresentador de Voz (Narração + Avanço Autônomo)"}
-                    >
-                      {autoPlay ? (
-                        <>
-                          <Pause className="w-4 h-4 fill-current animate-bounce" /> Pausar Voz
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> Iniciar Narração
-                        </>
-                      )}
-                    </button>
+                    <Tooltip content={autoPlay ? "Pausar o Apresentador de Voz e o avanço autônomo de slides" : "Iniciar leitura dinâmica em áudio masculino com avanço automático"} position="bottom">
+                      <button
+                        id="narration-control"
+                        onClick={handleToggleNarration}
+                        className={`px-4 py-2 sm:px-5 sm:py-2 rounded-xl text-xs sm:text-xs font-black font-mono transition-all flex items-center gap-2 uppercase tracking-wider ${
+                          autoPlay 
+                            ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black animate-pulse shadow-[0_0_20px_rgba(245,158,11,0.6)] scale-105 border border-amber-400' 
+                            : 'bg-amber-500/10 text-amber-400 hover:text-amber-300 border-2 border-amber-500/40 hover:border-amber-500/60 font-extrabold shadow-[0_0_10px_rgba(245,158,11,0.15)] hover:scale-105'
+                        }`}
+                        title={autoPlay ? "Pausar Apresentador de Voz (Narração + Avanço Autônomo)" : "Iniciar Apresentador de Voz (Narração + Avanço Autônomo)"}
+                      >
+                        {autoPlay ? (
+                          <>
+                            <Pause className="w-4 h-4 fill-current animate-bounce" /> Pausar Voz
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> Iniciar Narração
+                          </>
+                        )}
+                      </button>
+                    </Tooltip>
 
                     <span className="w-px h-4.5 bg-slate-800" />
 
                     {/* Rate/Speed adjustment selector */}
-                    <button
-                      onClick={() => {
-                        let nextRate = 1.1;
-                        if (narratorRate === 1.1) nextRate = 1.3;
-                        else if (narratorRate === 1.3) nextRate = 0.95;
-                        else nextRate = 1.1;
-                        
-                        setNarratorRate(nextRate);
-                        
-                        // If currently playing, restart with new rate
-                        if (isNarrating) {
-                          const text = getStepNarrationText(currentModule, currentSlideIndex, revealedCount);
-                          setTimeout(() => {
-                            speakText(text);
-                          }, 100);
-                        }
-                      }}
-                      className="px-2.5 py-1.5 hover:bg-slate-800 rounded-lg text-[10px] sm:text-xs text-slate-400 hover:text-white font-mono font-bold border border-slate-800/80"
-                      title="Alterar velocidade da voz"
-                    >
-                      Vel: {narratorRate === 0.95 ? "0.95x" : narratorRate === 1.1 ? "1.1x" : "1.3x"}
-                    </button>
+                    <Tooltip content={`Velocidade de reprodução da voz. Velocidade ideal recomendada: 1.3x`} position="bottom">
+                      <button
+                        onClick={() => {
+                          let nextRate = 1.1;
+                          if (narratorRate === 1.1) nextRate = 1.3;
+                          else if (narratorRate === 1.3) nextRate = 0.95;
+                          else nextRate = 1.1;
+                          
+                          setNarratorRate(nextRate);
+                          
+                          // If currently playing, restart with new rate
+                          if (isNarrating) {
+                            const text = getStepNarrationText(currentModule, currentSlideIndex, revealedCount);
+                            setTimeout(() => {
+                              speakText(text);
+                            }, 100);
+                          }
+                        }}
+                        className="px-2.5 py-1.5 hover:bg-slate-800 rounded-lg text-[10px] sm:text-xs text-slate-400 hover:text-white font-mono font-bold border border-slate-800/80"
+                        title="Alterar velocidade da voz"
+                      >
+                        Vel: {narratorRate === 0.95 ? "0.95x" : narratorRate === 1.1 ? "1.1x" : "1.3x"}
+                      </button>
+                    </Tooltip>
                   </div>
 
                   <span className="text-[10px] sm:text-xs bg-slate-950 border border-slate-800 text-amber-400 font-black uppercase tracking-widest px-3 py-1 rounded-md hidden lg:inline-block">
@@ -1662,6 +1684,29 @@ export default function App() {
                           </div>
                         );
 
+                        // Slide 5: Quiz Interativo
+                        case 5: return (
+                          <ModuleQuiz
+                            currentModule={currentModule}
+                            onQuizCompleted={(scorePercentage) => {
+                              setProgress(prev => {
+                                const newScores = {
+                                  ...prev.quizScores,
+                                  [activeModuleId]: scorePercentage
+                                };
+                                const updatedProgress = {
+                                  ...prev,
+                                  quizScores: newScores
+                                };
+                                localStorage.setItem('industrial_os_training_progress', JSON.stringify(updatedProgress));
+                                return updatedProgress;
+                              });
+                            }}
+                            savedScore={progress.quizScores[activeModuleId]}
+                            playSound={playSound}
+                          />
+                        );
+
                         default: return <div className="text-center text-xs py-10 text-slate-500">Erro de carregamento do slide</div>;
                       }
                     })()}
@@ -1691,18 +1736,38 @@ export default function App() {
                   >
                     <ChevronLeft className="w-4 h-4" /> Anterior
                   </button>
-                  <button 
-                    onClick={handleNextAction}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-5 py-2 rounded-xl text-xs sm:text-sm font-mono font-black flex items-center gap-1.5 shrink-0 transition-all active:scale-95 shadow-md"
-                  >
-                    {currentSlideIndex === 4 ? (activeModuleId === 22 ? 'Concluir Apresentação' : 'Próximo Módulo') : 'Avançar'} 
-                    {revealedCount < getMaxRevealsForSlide(currentSlideIndex) ? <Sparkles className="w-4 h-4 text-slate-950" /> : <ChevronRight className="w-4 h-4 text-slate-950" />}
-                  </button>
+                  {(() => {
+                    const isQuizCompleted = progress.quizScores[activeModuleId] !== undefined;
+                    const isNextDisabled = currentSlideIndex === 5 && !isQuizCompleted;
+                    return (
+                      <button 
+                        onClick={handleNextAction}
+                        disabled={isNextDisabled}
+                        title={isNextDisabled ? "Você precisa concluir o quiz para poder avançar para o próximo módulo!" : "Avançar"}
+                        className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-mono font-black flex items-center gap-1.5 shrink-0 transition-all active:scale-95 shadow-md ${
+                          isNextDisabled
+                            ? 'bg-slate-850 text-slate-500 border border-slate-800 cursor-not-allowed opacity-50'
+                            : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                        }`}
+                      >
+                        {currentSlideIndex === 5 
+                          ? (activeModuleId === 22 ? 'Concluir Apresentação' : 'Próximo Módulo') 
+                          : currentSlideIndex === 4 
+                            ? 'Ir para o Quiz' 
+                            : 'Avançar'} 
+                        {revealedCount < getMaxRevealsForSlide(currentSlideIndex) && currentSlideIndex < 5 ? (
+                          <Sparkles className={`w-4 h-4 ${isNextDisabled ? 'text-slate-500' : 'text-slate-950'}`} />
+                        ) : (
+                          <ChevronRight className={`w-4 h-4 ${isNextDisabled ? 'text-slate-500' : 'text-slate-950'}`} />
+                        )}
+                      </button>
+                    );
+                  })()}
                 </div>
 
                 {/* Slideshow indicator index dots */}
                 <div className="flex items-center gap-1.5">
-                  {Array.from({ length: 5 }).map((_, idx) => {
+                  {Array.from({ length: 6 }).map((_, idx) => {
                     const isPassed = idx < currentSlideIndex;
                     const isActive = idx === currentSlideIndex;
                     return (
@@ -1716,7 +1781,7 @@ export default function App() {
                               ? 'bg-amber-500/40' 
                               : 'bg-slate-800 hover:bg-slate-700'
                         }`}
-                        title={`Slide ${idx + 1}`}
+                        title={idx === 5 ? "Quiz de Consolidação" : `Slide ${idx + 1}`}
                       />
                     );
                   })}
@@ -1724,32 +1789,21 @@ export default function App() {
 
                 {/* Autoplay / Quick controls toggle */}
                 <div className="flex items-center gap-3">
-                  {/* Voice Control Mic button */}
-                  <button
-                    onClick={handleToggleVoiceSearch}
-                    className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-bold transition-all flex items-center gap-1.5 uppercase tracking-wider ${
-                      isListening 
-                        ? 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse' 
-                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
-                    }`}
-                    title={isListening ? "Desativar Comando de Voz" : "Ativar Comando de Voz (Mãos Livres)"}
-                  >
-                    {isListening ? <Mic className="w-3.5 h-3.5 text-red-500 animate-bounce" /> : <MicOff className="w-3.5 h-3.5 text-slate-500" />} 
-                    <span>{isListening ? "Ouvindo..." : "Comando de Voz"}</span>
-                  </button>
 
-                  <button
-                    onClick={() => setAutoPlay(!autoPlay)}
-                    className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-bold transition-all flex items-center gap-1.5 uppercase tracking-wider ${
-                      autoPlay 
-                        ? 'bg-amber-500/10 border-amber-500 text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.1)]' 
-                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
-                    }`}
-                    title={autoPlay ? "Pausar Apresentador de Voz" : "Iniciar Apresentador de Voz"}
-                  >
-                    {autoPlay ? <Pause className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> : <Play className="w-3.5 h-3.5 text-slate-500 fill-slate-500" />} 
-                    <span>{autoPlay ? "Apresentador Ativo" : "Iniciar Apresentador"}</span>
-                  </button>
+                  <Tooltip content={autoPlay ? "Pausar Apresentador de Voz" : "Iniciar leitura de slides com avanço automático"} position="top">
+                    <button
+                      onClick={() => setAutoPlay(!autoPlay)}
+                      className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-bold transition-all flex items-center gap-1.5 uppercase tracking-wider ${
+                        autoPlay 
+                          ? 'bg-amber-500/10 border-amber-500 text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.1)]' 
+                          : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                      }`}
+                      title={autoPlay ? "Pausar Apresentador de Voz" : "Iniciar Apresentador de Voz"}
+                    >
+                      {autoPlay ? <Pause className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> : <Play className="w-3.5 h-3.5 text-slate-500 fill-slate-500" />} 
+                      <span>{autoPlay ? "Apresentador Ativo" : "Iniciar Apresentador"}</span>
+                    </button>
+                  </Tooltip>
                   <span className="text-[10px] text-slate-600 font-mono hidden lg:inline">
                     Atalhos: [← / →] Mudar Slide • [Espaço] Avançar Tópicos
                   </span>
@@ -1844,6 +1898,11 @@ export default function App() {
               <div className="absolute top-0 left-0 w-64 h-64 bg-amber-500/[0.02] rounded-full blur-3xl -z-10"></div>
               <div className="absolute bottom-0 right-0 w-64 h-64 bg-emerald-500/[0.02] rounded-full blur-3xl -z-10"></div>
               
+              {/* Official Brand Logo */}
+              <div className="flex justify-center mb-3 select-none pointer-events-none">
+                <AllInLogo size={120} className="drop-shadow-[0_0_10px_rgba(245,158,11,0.12)]" />
+              </div>
+
               <span className="text-[9px] font-mono tracking-widest text-amber-500 font-bold block mb-3">ALLIN-SO PLATFORM</span>
               <h1 className="text-2xl sm:text-4xl font-extrabold text-white font-serif tracking-tight mb-6">Certificado de Conclusão</h1>
               
@@ -2016,6 +2075,65 @@ export default function App() {
               <X className="w-4 h-4" />
             </button>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* GUIDED WELCOME TOUR */}
+      <InteractiveTour
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+        setSidebarOpen={setSidebarOpen}
+        setDrawerOpen={setDrawerOpen}
+        setShowStartPage={setShowStartPage}
+        onSelectModule={handleSelectModule}
+      />
+
+      {/* CUSTOM RESET PROGRESS CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {showResetModal && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="w-full max-w-md bg-slate-900 border-2 border-red-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 text-center"
+            >
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                title="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="mx-auto w-12 h-12 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4">
+                <RotateCcw className="w-5 h-5 animate-spin" style={{ animationDuration: '3s' }} />
+              </div>
+
+              <h3 className="text-base font-bold text-white mb-2 uppercase font-mono tracking-wider">
+                Redefinir Progresso?
+              </h3>
+
+              <p className="text-xs text-slate-300 leading-relaxed mb-6">
+                Tem certeza de que deseja redefinir os módulos estratégicos Allin-SO apresentados? Todo o seu progresso acumulado de estudo nesta máquina será apagado.
+              </p>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowResetModal(false)}
+                  className="px-4 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-slate-300 text-xs font-bold transition-all active:scale-95"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmResetProgress}
+                  className="px-5 py-2 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 text-white text-xs font-black uppercase rounded-xl transition-all shadow-lg active:scale-95 hover:scale-[1.02]"
+                >
+                  Sim, Redefinir
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
       

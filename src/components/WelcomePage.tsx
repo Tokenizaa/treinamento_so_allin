@@ -3,10 +3,11 @@ import {
   Play, BookOpen, Award, Mic, Clock, Sparkles, HelpCircle, 
   CheckCircle2, ChevronRight, GraduationCap, ShieldCheck, Cpu, 
   BarChart3, Factory, Users, Settings, Workflow, Layout,
-  ArrowRight, ChevronLeft, Presentation, Grid, Landmark
+  ArrowRight, ChevronLeft, Presentation, Grid, Landmark, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ModuleData, UserProgress } from '../types';
+import { AllInLogo } from './AllInLogo';
 
 interface WelcomePageProps {
   userName: string;
@@ -17,6 +18,7 @@ interface WelcomePageProps {
   onToggleVoiceCommand: () => void;
   onOpenVoiceHelp: () => void;
   getModuleIcon: (id: number) => React.ReactNode;
+  onStartTour?: () => void;
 }
 
 export const WelcomePage: React.FC<WelcomePageProps> = ({
@@ -27,7 +29,8 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({
   isListening,
   onToggleVoiceCommand,
   onOpenVoiceHelp,
-  getModuleIcon
+  getModuleIcon,
+  onStartTour
 }) => {
   const [viewMode, setViewMode] = useState<'cover' | 'curriculum'>('cover');
   const [selectedTrilhaIndex, setSelectedTrilhaIndex] = useState<number>(0);
@@ -151,6 +154,11 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({
                     </span>
                   </div>
 
+                  {/* Brand Logo with perfect size adjustment */}
+                  <div className="py-2 flex justify-center select-none pointer-events-none">
+                    <AllInLogo size={150} className="drop-shadow-[0_0_15px_rgba(245,158,11,0.1)]" />
+                  </div>
+
                   {/* Subtitle / Factory context */}
                   <span className="text-[10px] sm:text-xs font-mono text-slate-400 uppercase tracking-widest block font-bold">
                     SISTEMA DE GESTÃO E CAPACITAÇÃO OPERACIONAL
@@ -183,6 +191,16 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({
                       <Grid className="w-3.5 h-3.5 text-amber-500" />
                       Ver Cronograma de Módulos
                     </button>
+
+                    {onStartTour && (
+                      <button
+                        onClick={onStartTour}
+                        className="w-full sm:w-auto bg-slate-900 hover:bg-slate-805 text-amber-500 border border-amber-500/30 hover:border-amber-500/50 font-black px-5 py-3 rounded-xl text-xs font-mono transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 uppercase tracking-wider cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.05)]"
+                      >
+                        <Compass className="w-3.5 h-3.5 animate-pulse text-amber-500" />
+                        Fazer Tour Guiado
+                      </button>
+                    )}
                   </div>
 
                   {/* Stats row */}
@@ -234,13 +252,13 @@ export const WelcomePage: React.FC<WelcomePageProps> = ({
                 </div>
 
                 <div className="bg-slate-900 border border-slate-850 rounded-xl p-3 flex gap-2.5 items-start">
-                  <div className="p-1.5 bg-indigo-500/10 text-indigo-500 rounded-lg shrink-0 mt-0.5">
-                    <Mic className="w-3.5 h-3.5" />
+                  <div className="p-1.5 bg-amber-500/10 text-amber-500 rounded-lg shrink-0 mt-0.5">
+                    <Clock className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h3 className="text-[10px] font-bold text-white uppercase font-mono tracking-wider mb-0.5">Controle de Voz</h3>
+                    <h3 className="text-[10px] font-bold text-white uppercase font-mono tracking-wider mb-0.5">Narração de Voz</h3>
                     <p className="text-[10px] text-slate-400 leading-normal">
-                      Aproveite a facilidade de mudar slides e interagir dizendo simplesmente <strong className="text-indigo-400 font-semibold">"Avançar"</strong> ou <strong className="text-indigo-400 font-semibold">"Voltar"</strong> na apresentação.
+                      Ative o Apresentador de Voz para ouvir a leitura estratégica em áudio de cada slide, com velocidade padrão otimizada em 1.3x para maior produtividade.
                     </p>
                   </div>
                 </div>

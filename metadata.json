@@ -1,6 +1,6 @@
 {
   "name": "Treinamento Allin-SO",
   "description": "Treinamento completo sobre os fundamentos de Engenharia de Produção aplicados à fábrica de colchões Allin na plataforma Allin-SO.",
-  "requestFramePermissions": ["microphone"],
+  "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
